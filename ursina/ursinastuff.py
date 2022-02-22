@@ -72,6 +72,7 @@ def _destroy(entity, force_destroy=False):
 
     if entity in scene.entities:
         scene.entities.remove(entity)
+        scene.remove_all_callables(entity)
 
 
     if hasattr(entity, 'scripts'):

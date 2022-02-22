@@ -136,22 +136,7 @@ class Ursina(ShowBase):
         for seq in application.sequences:
             seq.update()
 
-        for entity in scene.entities:
-            if entity.enabled == False or entity.ignore:
-                continue
-
-            if application.paused and entity.ignore_paused == False:
-                continue
-
-            if hasattr(entity, 'update') and callable(entity.update):
-                entity.update()
-
-
-            if hasattr(entity, 'scripts'):
-                for script in entity.scripts:
-                    if script.enabled and hasattr(script, 'update') and callable(script.update):
-                        script.update()
-
+        self.call_function('update')
 
         return Task.cont
 
@@ -194,21 +179,7 @@ class Ursina(ShowBase):
             if hasattr(__main__, 'input'):
                 __main__.input(key)
 
-
-        for entity in scene.entities:
-            if entity.enabled == False or entity.ignore or entity.ignore_input:
-                continue
-            if application.paused and entity.ignore_paused == False:
-                continue
-
-            if hasattr(entity, 'input') and callable(entity.input):
-                entity.input(key)
-
-            if hasattr(entity, 'scripts'):
-                for script in entity.scripts:
-                    if script.enabled and hasattr(script, 'input') and callable(script.input):
-                        script.input(key)
-
+        self.call_function('input', key)
 
         try: mouse.input(key)
         except: pass
@@ -243,19 +214,21 @@ class Ursina(ShowBase):
             if hasattr(__main__, 'keystroke'):
                 __main__.keystroke(key)
 
-        for entity in scene.entities:
-            if entity.enabled == False or entity.ignore or entity.ignore_input:
-                continue
-            if application.paused and entity.ignore_paused == False:
-                continue
+        self.call_function('keystroke', key)
 
-            if hasattr(entity, 'keystroke') and callable(entity.keystroke):
-                entity.keystroke(key)
-
-            if hasattr(entity, 'scripts'):
-                for script in entity.scripts:
-                    if script.enabled and hasattr(script, 'keystroke') and callable(script.keystroke):
-                        script.keystroke(key)
+    def call_function(self, function, *args):
+        calling_inputs = function in ('input', 'keyboard')
+        from ursina import Entity
+        for e in scene.callables[function]:
+            if not e.enabled: continue
+            
+            e2 = e if isinstance(e, Entity) else e.entity
+            if not e2.enabled or e2.ignore or (e2.ignore_input and calling_inputs):
+                continue
+            if application.paused and not e2.ignore_paused:
+                continue
+                
+            getattr(e, function)(*args)
 
 
     def run(self):

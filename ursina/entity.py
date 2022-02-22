@@ -123,6 +123,9 @@ class Entity(NodePath):
             elif isinstance(self.on_disable, Sequence):
                 self.on_disable.start()
 
+        if add_to_scene_entities:
+            scene.append_all_callables(self)
+
 
     def _list_to_vec(self, value):
         if isinstance(value, (int, float, complex)):
@@ -266,6 +269,14 @@ class Entity(NodePath):
             object.__setattr__(self, name, value)
             self.set_shader_input(name, value)
 
+        elif name in scene.callables.keys():
+            if self.add_to_scene_entities:
+                if value == None:
+                    scene.remove_callable(name, self)
+                else:
+                    scene.append_callable(name, self)
+
+            object.__setattr__(self, name, value)
 
         try:
             super().__setattr__(name, value)
@@ -926,6 +937,7 @@ class Entity(NodePath):
             setattr(self, camel_to_snake(class_instance.__class__.__name__), class_instance)
             self.scripts.append(class_instance)
             # print('added script:', camel_to_snake(name.__class__.__name__))
+            scene.append_all_callables(class_instance)
             return class_instance
 
 

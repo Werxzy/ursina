@@ -17,7 +17,8 @@ class Scene(NodePath):
         self.camera = None
         self.ui_camera = None
 
-        self.entities = []
+        self._entities = []
+        self.callables = {'update' : [], 'input' : [], 'keystroke' : []}
         self.hidden = NodePath('hidden')
         self.reflection_map_name = 'reflection_map_3'
 
@@ -49,6 +50,42 @@ class Scene(NodePath):
 
         from ursina import application
         application.sequences.clear()
+
+
+    @property
+    def entities(self):
+        return self._entities
+
+    @entities.setter
+    def entities(self, value):
+        self._entities = value
+
+        for v in self.callables.values():
+            v.clear()
+
+        for e in self.entities:
+            self.append_all_callables(e)
+            for s in e.scripts:
+                self.append_all_callables(s)
+
+
+    def append_callable(self, target, entity):
+        if entity not in self.callables[target]:
+            self.callables[target].append(entity)
+    
+    def remove_callable(self, target, entity):
+        if entity in self.callables[target]:
+            self.callables[target].remove(entity)
+
+    def append_all_callables(self, entity):
+        for k,v in self.callables.items():
+            if hasattr(entity, k) and entity not in v:
+                v.append(entity) 
+
+    def remove_all_callables(self, entity):
+        for v in self.callables.values():
+            if entity in v:
+                v.remove(entity)
 
 
     @property
