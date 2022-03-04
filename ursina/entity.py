@@ -55,6 +55,7 @@ class Entity(NodePath):
         self.eternal = False    # eternal entities does not get destroyed on scene.clear()
         self.ignore_paused = False      # if True, will still run when application is paused. useful when making a pause menu for example.
         self.ignore_input = False
+        self.priority = 0       # order called during update(). The lower the number, the earlier it's called.
 
         self.parent = scene     # default parent is scene, which means it's in 3d space. to use UI space, set the parent to camera.ui instead.
         self.add_to_scene_entities = add_to_scene_entities # set to False to be ignored by the engine, but still get rendered.
