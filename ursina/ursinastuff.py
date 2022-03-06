@@ -64,7 +64,7 @@ def _destroy(entity, force_destroy=False):
         entity.stop(False)
         # return
 
-    if hasattr(entity, 'on_destroy'):
+    if hasattr(entity, 'on_destroy') and callable(entity.on_destroy):
         entity.on_destroy()
 
     for c in entity.children:
