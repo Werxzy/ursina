@@ -757,6 +757,7 @@ class Entity(NodePath):
         if value is None and self._texture:
             # print('remove texture')
             self.model.clearTexture()
+            self._texture = None
             return
 
         if value.__class__ is Texture:

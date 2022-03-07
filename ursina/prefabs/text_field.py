@@ -129,18 +129,19 @@ class TextField(Entity):
 
     @active.setter
     def active(self, value):
-        self._active = value
+        if self._active != value:
+            self._active = value
+            
+            if self._blinker and not self._blinker.finished:
+                self._blinker.pause()
+                self.cursor.visible = True
 
-        if self._blinker and not self._blinker.finished:
-            self._blinker.pause()
-            self.cursor.visible = True
-
-        if self._active:
-            self._blinker.resume()
-        else:
-            self.selection = None
-            self.draw_selection()
-            self.cursor.visible = False
+            if self._active:
+                self._blinker.resume()
+            else:
+                self.selection = None
+                self.draw_selection()
+                self.cursor.visible = False
 
     @property
     def scroll_size(self):
@@ -463,6 +464,10 @@ class TextField(Entity):
                 self._append_undo(self.text, y, x)
                 self.text = '\n'.join(lines)
 
+            if self.selection:
+                self.selection[0][0] += 4
+                self.selection[1][0] += 4
+                invoke(self.draw_selection, delay = 0.01)
 
         if key in self.shortcuts['dedent']:
             moveCursor = False
@@ -483,6 +488,11 @@ class TextField(Entity):
 
             if moveCursor:
                 self.cursor.x = max(self.cursor.x - 4, 0)
+                if self.selection:
+                    self.selection[0][0] = max(0, self.selection[0][0] - 4)
+                    self.selection[1][0] = max(0, self.selection[1][0] - 4)
+                    invoke(self.draw_selection, delay = 0.01)
+
             if appendHistory:
                 self._append_undo(self.text, y, x)
                 self.text = '\n'.join(lines)
@@ -759,7 +769,7 @@ class TextField(Entity):
                     self.draw_selection()
                 
         
-        if self.register_mouse_input and mouse.left and not self._ignore_next_click:
+        if self.active and self.register_mouse_input and mouse.left and not self._ignore_next_click:
             self.cursor.position = self.mousePos()
             self.clampMouseScrollOrigin()
             if self.selection and self.selection[1] != self.cursor.position:
