@@ -18,8 +18,8 @@ class Scene(NodePath):
         self.ui_camera = None
 
         self._entities = []
-        self._needs_to_sort_callables = False
-        self._callables = {'update' : [], 'input' : [], 'keystroke' : []}
+        self.callables = {'update' : [], 'input' : [], 'keystroke' : []}
+        self._callables_to_add = {'update' : [], 'input' : [], 'keystroke' : []}
         self.hidden = NodePath('hidden')
         self.reflection_map_name = 'reflection_map_3'
 
@@ -69,34 +69,30 @@ class Scene(NodePath):
             for s in e.scripts:
                 self.append_all_callables(s)
 
-    @property
-    def callables(self):
-        if self._needs_to_sort_callables:
-            for v in self._callables.values():
-                v.sort(key = lambda e: e.priority if hasattr(e, 'priority') else 0)
-            self._needs_to_sort_callables = False
-            
-        return self._callables
+    def update_callable(self, target):
+        if len(self._callables_to_add) > 0:
+            self.callables[target].extend(self._callables_to_add[target])
+            self._callables_to_add[target].clear()
+            self.callables[target].sort(key = lambda e: e.priority if hasattr(e, 'priority') else 0)
 
     def append_callable(self, target, entity):
-        if entity not in self.callables[target]:
-            self.callables[target].append(entity)
-            self._needs_to_sort_callables = True
+        if entity not in self.callables[target] and entity not in self._callables_to_add[target]:
+            self._callables_to_add[target].append(entity)
     
     def remove_callable(self, target, entity):
         if entity in self.callables[target]:
             self.callables[target].remove(entity)
+        if entity in self._callables_to_add:
+            self._callables_to_add[target].remove(entity)
 
     def append_all_callables(self, entity):
-        for k,v in self.callables.items():
-            if hasattr(entity, k) and entity not in v:
-                v.append(entity) 
-                self._needs_to_sort_callables = True
+        for k in self.callables.keys():
+            if hasattr(entity, k):
+                self.append_callable(k, entity)
 
     def remove_all_callables(self, entity):
-        for v in self.callables.values():
-            if entity in v:
-                v.remove(entity)
+        for k in self.callables.keys():
+            self.remove_callable(k, entity)
 
     @property
     def fog_color(self):

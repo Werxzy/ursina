@@ -219,6 +219,7 @@ class Ursina(ShowBase):
     def call_function(self, function, *args):
         calling_inputs = function in ('input', 'keyboard')
         from ursina import Entity
+        scene.update_callable(function)
         for e in scene.callables[function]:
             if not e.enabled: continue
             
