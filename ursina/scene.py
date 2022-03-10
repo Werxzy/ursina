@@ -63,6 +63,8 @@ class Scene(NodePath):
 
         for v in self.callables.values():
             v.clear()
+        for v in self._callables_to_add.values():
+            v.clear()
 
         for e in self.entities:
             self.append_all_callables(e)
@@ -70,10 +72,11 @@ class Scene(NodePath):
                 self.append_all_callables(s)
 
     def update_callable(self, target):
-        if len(self._callables_to_add) > 0:
-            self.callables[target].extend(self._callables_to_add[target])
-            self._callables_to_add[target].clear()
+        to_add = self._callables_to_add[target]
+        if len(to_add) > 0:
+            self.callables[target].extend(to_add)
             self.callables[target].sort(key = lambda e: e.priority if hasattr(e, 'priority') else 0)
+            to_add.clear()
 
     def append_callable(self, target, entity):
         if entity not in self.callables[target] and entity not in self._callables_to_add[target]:
@@ -82,7 +85,7 @@ class Scene(NodePath):
     def remove_callable(self, target, entity):
         if entity in self.callables[target]:
             self.callables[target].remove(entity)
-        if entity in self._callables_to_add:
+        if entity in self._callables_to_add[target]:
             self._callables_to_add[target].remove(entity)
 
     def append_all_callables(self, entity):
