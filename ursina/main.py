@@ -112,6 +112,10 @@ class Ursina(ShowBase):
         scene.set_up()
         self._update_task = taskMgr.add(self._update, "update")
 
+        time.fdt = 1.0 / 30.0 if 'fixed_update_delay' not in kwargs else kwargs['fixed_update_delay']
+        self._fixed_update_task = taskMgr.add(self._fixed_update, "_fixed_update", delay = time.fdt)
+        self._fixed_update_current = time.time()
+
         # try to load settings that need to be applied before entity creation
         application.load_settings()
 
@@ -141,7 +145,21 @@ class Ursina(ShowBase):
         return Task.cont
 
 
+    def _fixed_update(self, task):
+        # time between frames
+        self._fixed_update_current += time.fdt
+        time.fixed_time = self._fixed_update_current
 
+        if hasattr(__main__, 'fixed_update') and __main__.update and not application.paused: 
+            __main__.fixed_update()
+        
+        self.call_function('fixed_update')
+        
+        taskMgr.add(self._fixed_update, "_fixed_update", delay = time.fdt - (time.time() - self._fixed_update_current))
+        
+        return Task.done
+
+    
     def input_up(self, key):
         if key in  ('wheel_up', 'wheel_down'):
             return

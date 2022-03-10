@@ -18,8 +18,8 @@ class Scene(NodePath):
         self.ui_camera = None
 
         self._entities = []
-        self.callables = {'update' : [], 'input' : [], 'keystroke' : []}
-        self._callables_to_add = {'update' : [], 'input' : [], 'keystroke' : []}
+        self.callables = {'update' : [], 'fixed_update' : [], 'input' : [], 'keystroke' : []}
+        self._callables_to_add = {'update' : [], 'fixed_update' : [], 'input' : [], 'keystroke' : []}
         self.hidden = NodePath('hidden')
         self.reflection_map_name = 'reflection_map_3'
 
